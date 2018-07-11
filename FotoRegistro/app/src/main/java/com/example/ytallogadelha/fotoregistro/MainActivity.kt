@@ -13,7 +13,6 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import android.graphics.Matrix
-import android.net.Uri
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
@@ -24,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     val REQUEST_IMAGE_CAPTURE = 1
     val REQUEST_TAKE_PHOTO = 1
     val REQUEST_PICK_IMAGE = 1234
-    lateinit var mImageView: ImageView
+    lateinit var imageView: ImageView
     lateinit var botaoCaptura: Button
     lateinit var botaoSelecionar: Button
 
@@ -33,15 +32,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         //referencinando os componentes da interface
-        mImageView = findViewById(R.id.image_foto)
-        botaoCaptura = findViewById(R.id.button_foto)
+        imageView = findViewById(R.id.image_foto)
+        botaoCaptura = findViewById(R.id.button_captura)
         botaoSelecionar = findViewById(R.id.button_selecionar)
 
+        //configurando o botão capturar(foto com a câmera)
         botaoCaptura.setOnClickListener(View.OnClickListener {
 
             capturarFoto()
         })
 
+        //configurando o botão selecionar(foto da galeria)
         botaoSelecionar.setOnClickListener(View.OnClickListener {
 
             recuperarFoto()
@@ -51,17 +52,19 @@ class MainActivity : AppCompatActivity() {
     //método que delega a atividade de tirar foto para o aplicativo da câmera
     private fun capturarFoto() {
 
-        val takePictureIntent: Intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        //intent que delega a atividade para a câmera
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
+        if (cameraIntent.resolveActivity(packageManager) != null) {
 
-            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
+            startActivityForResult(cameraIntent, REQUEST_TAKE_PHOTO)
         }
     }
 
     private fun recuperarFoto(){
 
-        var galeriaIntent  =  Intent(Intent.ACTION_PICK,
+        //intent que acessa a galeria
+        val galeriaIntent  =  Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI)
 
         startActivityForResult(Intent.createChooser(galeriaIntent, "Selecione uma imagem"), REQUEST_PICK_IMAGE)
@@ -79,10 +82,10 @@ class MainActivity : AppCompatActivity() {
             val imageBitmap = extras!!.get("data") as Bitmap
 
             //rotacionando a imagem
-            var imagemRotacionada = rotateBitmap(imageBitmap, 90)
+            val imagemRotacionada = rotacionarBitmap(imageBitmap, 90)
 
             //setando a imagem na imageView
-            mImageView.setImageBitmap(imagemRotacionada)
+            imageView.setImageBitmap(imagemRotacionada)
 
             salvarBitmap(imagemRotacionada)
             Toast.makeText(this, "Imagem salva!!!", Toast.LENGTH_LONG).show()
@@ -90,27 +93,32 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == REQUEST_PICK_IMAGE && resultCode == Activity.RESULT_OK){
 
-            val selectedImage = data!!.data
+            //recuperando a foto selecionada por meio da intent
+            val imagemSelecionada = data!!.data
 
-            mImageView.setImageURI(selectedImage)
+            //setando a imagem na imageView
+            imageView.setImageURI(imagemSelecionada)
         }
     }
 
     //método que salva o imagem como JPEG
     private fun salvarBitmap( bitmap: Bitmap){
 
-        // Create an image file name
+        //criando um filename
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val imageFileName: String = "PNG" + timeStamp + ".png"
-        val dir: File = Environment.getExternalStorageDirectory()
-        val destino = File(dir, imageFileName)
+
+        //criando o diretório
+        val diretorio: File = Environment.getExternalStorageDirectory()
+        val destino = File(diretorio, imageFileName)
 
         try {
 
-            val out = FileOutputStream(destino)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            out.flush()
-            out.close()
+            //criando o outputstream para salvar a imagem
+            val saida = FileOutputStream(destino)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, saida)
+            saida.flush()
+            saida.close()
 
         }catch ( ex: IOException){
             println("Erro ao salvar a imagem -> ${ex}")
@@ -118,15 +126,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     //método para rotacionar o bitmap
-    private fun rotateBitmap(original: Bitmap, degrees: Int): Bitmap {
-        val width = original.width
-        val height = original.height
+    private fun rotacionarBitmap(original: Bitmap, degrees: Int): Bitmap {
+        val largura = original.width
+        val altura = original.height
 
         val matrix = Matrix()
         matrix.preRotate(degrees.toFloat())
 
-        val rotatedBitmap = Bitmap.createBitmap(original, 0, 0, width, height, matrix, true)
+        val bitmapRotacionado = Bitmap.createBitmap(original, 0, 0, largura, altura, matrix, true)
 
-        return rotatedBitmap
+        return bitmapRotacionado
     }
 }
