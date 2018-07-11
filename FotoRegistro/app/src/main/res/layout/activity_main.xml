@@ -18,7 +18,7 @@
         android:layout_marginTop="105dp"
         android:adjustViewBounds="true"
         android:scaleType="centerCrop"
-        app:layout_constraintBottom_toTopOf="@+id/button_foto"
+        app:layout_constraintBottom_toTopOf="@+id/button_captura"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -26,7 +26,7 @@
     </ImageView>
 
     <Button
-        android:id="@+id/button_foto"
+        android:id="@+id/button_captura"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
