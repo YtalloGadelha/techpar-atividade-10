@@ -2,7 +2,6 @@
 Atividade 10, treinamento TechPar.
 
 - Aplicativo android:
-  - Captura imagem;
-  - Armazena na galeria;
-  - Permite selecionar foto da galeria.
-
+  - permite capturar imagem por meio da câmera;
+  - permite armazenar a imagem na galeria;
+  - permite selecionar foto da galeria.
