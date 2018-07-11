@@ -17,6 +17,8 @@ import java.util.*
 import android.graphics.BitmapFactory
 import android.view.View
 import android.widget.Button
+import android.widget.Toast
+import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,33 +51,6 @@ class MainActivity : AppCompatActivity() {
 
         if (takePictureIntent.resolveActivity(packageManager) != null) {
 
-//            // Create the File where the photo should go
-//
-//
-//            try {
-//                photoFile = createImageFile()
-//
-//            } catch (ex: IOException) {
-//                // Error occurred while creating the File
-//
-//            }
-//
-//            // Continue only if the File was successfully created
-//            if (photoFile != null) {
-//
-//                photoURI = FileProvider.getUriForFile(applicationContext,
-//                        "com.example.ytallogadelha.fotoregistro.fileprovider",
-//                        photoFile!!)
-//
-//                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-//
-//                //println("photoFile -> ${photoFile!!.absolutePath} ")
-//
-//                //println("photoURI -> ${photoURI}")
-//                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
-//
-//            }
-
             startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
         }
     }
@@ -86,64 +61,33 @@ class MainActivity : AppCompatActivity() {
 
             println("${requestCode} e ${resultCode} e ${Activity.RESULT_OK} e ${data}")
 
-            //parâmetro data está vindo nulo!!!
             val extras = data?.extras
 
-           //println("Passa aqui?")
             val imageBitmap = extras!!.get("data") as Bitmap
             mImageView.setImageBitmap(imageBitmap)
+
+            salvarBitmap(imageBitmap)
+            Toast.makeText(this, "Imagem salva!!!", Toast.LENGTH_LONG).show()
         }
     }
 
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
+    private fun salvarBitmap( bitmap: Bitmap){
 
         // Create an image file name
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val imageFileName = "JPG_" + timeStamp + "_"
-        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val image = File.createTempFile(
-                imageFileName, /* prefix */
-                ".jpg", /* suffix */
-                storageDir      /* directory */
-        )
+        val imageFileName: String = "JPG_" + timeStamp + ".png"
+        val dir: File = Environment.getExternalStorageDirectory()
+        val destino = File(dir, imageFileName)
 
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath()
-        println("mCurrentPhotoPath -> ${mCurrentPhotoPath}")
-        return image
+        try {
+
+            val out = FileOutputStream(destino)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            out.flush()
+            out.close()
+
+        }catch ( ex: IOException){
+            println("Erro ao salvar a imagem -> ${ex}")
+        }
     }
-
-    private fun galleryAddPic() {
-        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-        val f = File(mCurrentPhotoPath)
-        val contentUri = Uri.fromFile(f)
-        mediaScanIntent.data = contentUri
-        this.sendBroadcast(mediaScanIntent)
-    }
-
-    private fun setPic() {
-        // Get the dimensions of the View
-        val targetW = mImageView.width
-        val targetH = mImageView.height
-
-        // Get the dimensions of the bitmap
-        val bmOptions = BitmapFactory.Options()
-        bmOptions.inJustDecodeBounds = true
-        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions)
-        val photoW = bmOptions.outWidth
-        val photoH = bmOptions.outHeight
-
-        // Determine how much to scale down the image
-        val scaleFactor = Math.min(photoW / targetW, photoH / targetH)
-
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false
-        bmOptions.inSampleSize = scaleFactor
-        bmOptions.inPurgeable = true
-
-        val bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions)
-        mImageView.setImageBitmap(bitmap)
-    }
-
 }
