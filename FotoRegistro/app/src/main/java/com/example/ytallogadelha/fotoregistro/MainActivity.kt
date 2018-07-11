@@ -13,6 +13,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import android.graphics.Matrix
+import android.net.Uri
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
@@ -22,9 +23,10 @@ class MainActivity : AppCompatActivity() {
 
     val REQUEST_IMAGE_CAPTURE = 1
     val REQUEST_TAKE_PHOTO = 1
+    val REQUEST_PICK_IMAGE = 1234
     lateinit var mImageView: ImageView
     lateinit var botaoCaptura: Button
-
+    lateinit var botaoSelecionar: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,15 +35,21 @@ class MainActivity : AppCompatActivity() {
         //referencinando os componentes da interface
         mImageView = findViewById(R.id.image_foto)
         botaoCaptura = findViewById(R.id.button_foto)
+        botaoSelecionar = findViewById(R.id.button_selecionar)
 
         botaoCaptura.setOnClickListener(View.OnClickListener {
 
-            dispatchTakePictureIntent()
+            capturarFoto()
+        })
+
+        botaoSelecionar.setOnClickListener(View.OnClickListener {
+
+            recuperarFoto()
         })
     }
 
     //método que delega a atividade de tirar foto para o aplicativo da câmera
-    private fun dispatchTakePictureIntent() {
+    private fun capturarFoto() {
 
         val takePictureIntent: Intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 
@@ -49,6 +57,15 @@ class MainActivity : AppCompatActivity() {
 
             startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
         }
+    }
+
+    private fun recuperarFoto(){
+
+        var galeriaIntent  =  Intent(Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI)
+
+        startActivityForResult(Intent.createChooser(galeriaIntent, "Selecione uma imagem"), REQUEST_PICK_IMAGE)
+
     }
 
     //método chamado quando o aplicativo manda a foto de volta
@@ -70,6 +87,13 @@ class MainActivity : AppCompatActivity() {
             salvarBitmap(imagemRotacionada)
             Toast.makeText(this, "Imagem salva!!!", Toast.LENGTH_LONG).show()
         }
+
+        if (requestCode == REQUEST_PICK_IMAGE && resultCode == Activity.RESULT_OK){
+
+            val selectedImage = data!!.data
+
+            mImageView.setImageURI(selectedImage)
+        }
     }
 
     //método que salva o imagem como JPEG
@@ -77,14 +101,14 @@ class MainActivity : AppCompatActivity() {
 
         // Create an image file name
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val imageFileName: String = "JPEG" + timeStamp + ".jpeg"
+        val imageFileName: String = "PNG" + timeStamp + ".png"
         val dir: File = Environment.getExternalStorageDirectory()
         val destino = File(dir, imageFileName)
 
         try {
 
             val out = FileOutputStream(destino)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             out.flush()
             out.close()
 
